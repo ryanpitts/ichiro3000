@@ -1,0 +1,6 @@
+cssselect==0.9.1
+lxml==3.6.0
+pyquery==1.2.11
+redis==2.10.5
+requests==2.9.1
+wsgiref==0.1.2
