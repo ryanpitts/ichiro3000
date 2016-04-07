@@ -125,7 +125,7 @@ def fetch_events():
             # match against events we haven't seen
             if not stored:
                 result = PQ(event).attr("event")
-                match = result in CONFIG['events_tracked']
+                match = result.lower() in [event.lower() for event in CONFIG['events_tracked']]
                 r.set(rkey, result)
                 
                 # if we match, do a thing
