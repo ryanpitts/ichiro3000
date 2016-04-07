@@ -6,7 +6,11 @@ from datetime import date
 from pyquery import PyQuery as PQ
 
 DATA_ROOT = 'http://gd2.mlb.com/components/game/mlb/'
-
+REDIS_KEYS = {
+    'start': 'start_count',
+    'current': 'current_count',
+    'target': 'target_count',
+}
 # ICHIRO MLB ID 400085
 CONFIG = {
     'playerID': '621043', #borrowing Carlos Correa's 4/6/2016 for testing
@@ -57,22 +61,22 @@ def init_counts(r):
     Make sure redis has values for start, current, and target counts,
     and return those counts for possible calculations. 
     '''
-    start = r.get('start_count')
+    start = r.get(REDIS_KEYS['start'])
     if not start:
         start = CONFIG['start_count']
-        r.set('start_count', start)
+        r.set(REDIS_KEYS['start'], start)
         print 'Start count initialized.'
         
-    current = r.get('current_count')
+    current = r.get(REDIS_KEYS['current'])
     if not current:
         current = CONFIG['start_count']
-        r.set('current_count', current)
+        r.set(REDIS_KEYS['current'], current)
 
     if 'target_count' in CONFIG:
-        target = r.get('target_count')
+        target = r.get(REDIS_KEYS['target'])
         if not target:
             target = CONFIG['target_count']
-            r.set('target_count', target)
+            r.set(REDIS_KEYS['target'], target)
             print 'Target count initialized.'
     else:
         target = 0
@@ -81,17 +85,18 @@ def init_counts(r):
 
 
 def fetch_events():
-    r = create_redis_connection()
-    # borrowing Correa 4/6/2016 for testing
-    # delete this key to force a match each scrape
-    # and test addition to `current_count`
-    r.delete('gid_2016_04_06_houmlb_nyamlb_1-621043-AB4')
-    
     # some constants for this scrape
     playerID = CONFIG['playerID']
     team = CONFIG['team']
     today = date.today()
     
+    r = create_redis_connection()
+    # borrowing Correa 4/6/2016 for testing
+    # delete this key to force a match each scrape
+    # and test addition to `current_count`
+    today = date(2016, 4, 6)
+    r.delete('gid_2016_04_06_houmlb_nyamlb_1-621043-AB4')
+        
     # scrape the MLB game list page
     game_day_url = DATA_ROOT + 'year_{0}/month_{1}/day_{2}/'.format(today.year, '{:02d}'.format(today.month), '{:02d}'.format(today.day))
     page = PQ(game_day_url)
@@ -136,7 +141,7 @@ def handle_match(result):
     start, current, target = init_counts(r)
     # update current total
     new_total = current+1
-    r.set('current_count', new_total)
+    r.set(REDIS_KEYS['current'], new_total)
     
     # make a nice message for this match
     player_name = CONFIG['player_name']
