@@ -1,9 +1,16 @@
 import argparse, os, sys, traceback
 import hashlib
+import random
 import redis
 import requests
 from datetime import date
 from pyquery import PyQuery as PQ
+from twython import Twython
+
+TWITTER_CONSUMER_KEY = os.environ['TWITTER_CONSUMER_KEY']
+TWITTER_CONSUMER_SECRET = os.environ['TWITTER_CONSUMER_SECRET']
+TWITTER_ACCESS_TOKEN = os.environ['TWITTER_ACCESS_TOKEN']
+TWITTER_ACCESS_SECRET = os.environ['TWITTER_ACCESS_SECRET']
 
 DATA_ROOT = 'http://gd2.mlb.com/components/game/mlb/'
 REDIS_KEYS = {
@@ -12,9 +19,10 @@ REDIS_KEYS = {
     'target': 'target_count',
 }
 # ICHIRO MLB ID 400085
+# 621043 borrowing Carlos Correa's 4/6/2016 for testing
 CONFIG = {
-    'playerID': '621043', #borrowing Carlos Correa's 4/6/2016 for testing
-    'team': 'HOU', #borrowing Carlos Correa's 4/6/2016 for testing
+    'playerID': '400085',
+    'team': 'MIA',
     'player_name': 'Ichiro',
     'start_count': 2935,
     'target_count': 3000,
@@ -94,8 +102,9 @@ def fetch_events():
     # borrowing Correa 4/6/2016 for testing
     # delete this key to force a match each scrape
     # and test addition to `current_count`
-    today = date(2016, 4, 6)
-    r.delete('gid_2016_04_06_houmlb_nyamlb_1-621043-AB4')
+    #today = date(2016, 4, 6)
+    #r.delete('gid_2016_04_06_houmlb_nyamlb_1-621043-AB4')
+    #r.delete('gid_2016_04_06_houmlb_nyamlb_1-621043-AB5')
         
     # scrape the MLB game list page
     game_day_url = DATA_ROOT + 'year_{0}/month_{1}/day_{2}/'.format(today.year, '{:02d}'.format(today.month), '{:02d}'.format(today.day))
@@ -131,9 +140,25 @@ def fetch_events():
                 # if we match, do a thing
                 if match:
                     handle_match(result)
+                else:
+                    handle_miss(result)
                
     print 'Done with scrape.' 
 
+
+def handle_miss(result):
+    player_name = CONFIG['player_name']
+    WISHES = [
+        "",
+        "That's OK, we still love you Ichiro.",
+        "Get 'em next time!",
+        "We still believe! Go go go go, Ichiro https://t.co/9M0uBIG89B",
+    ]
+    message = "{0} {1} :( ".format(player_name, result.lower())
+    message += random.choice(WISHES)
+
+    tweet_message(message)
+    
 
 def handle_match(result):
     r = create_redis_connection()
@@ -145,15 +170,34 @@ def handle_match(result):
     
     # make a nice message for this match
     player_name = CONFIG['player_name']
-    message = "{0} {1}!".format(player_name, result.lower())
+    message = "{0} {1}! ".format(player_name, result.lower())
     
     if target > 0:
-        message += " Only {:,} to go till {:,}.".format((target-current), target)
+        message += "Thats's {:,}, only {:,} to go till {:,}.".format(new_total, (target-new_total), target)
     else:
-        message += " That's {:,} so far.".format(current)
+        message += "That's {:,} so far.".format(current)
 
-    print(message)
-    
+    tweet_message(message)
+
+
+def tweet_message(message):
+    # auth with Twitter
+    twitter = Twython(
+        TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET,
+        TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET
+    )
+    # make sure our tweet is short enough
+    tweet = check_tweet(message)
+    # send it
+    twitter.update_status(status=tweet)
+
+
+def check_tweet(tweet):
+    if len(tweet) > 140:
+        tweet = tweet[:137] + '...'
+
+    return tweet
+
 
 def process_args(arglist=None):
     parser = argparse.ArgumentParser()
