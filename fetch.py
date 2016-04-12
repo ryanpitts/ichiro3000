@@ -1,9 +1,9 @@
 import argparse, os, sys, traceback
+import arrow
 import hashlib
 import random
 import redis
 import requests
-from datetime import date
 from pyquery import PyQuery as PQ
 from twython import Twython
 
@@ -96,7 +96,9 @@ def fetch_events():
     # some constants for this scrape
     playerID = CONFIG['playerID']
     team = CONFIG['team']
-    today = date.today()
+    # use Honolulu time zone so we scrape the right date
+    # even during weird baseball
+    today = arrow.now('Pacific/Honolulu').date()
     
     r = create_redis_connection()
         
@@ -136,7 +138,7 @@ def fetch_events():
                     handle_match(result)
                 else:
                     handle_miss(result)
-    #print 'Done with scrape.' 
+    print 'Done with scrape.' 
 
 
 def handle_miss(result):
