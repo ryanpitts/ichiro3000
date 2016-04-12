@@ -99,12 +99,6 @@ def fetch_events():
     today = date.today()
     
     r = create_redis_connection()
-    # borrowing Correa 4/6/2016 for testing
-    # delete this key to force a match each scrape
-    # and test addition to `current_count`
-    #today = date(2016, 4, 6)
-    #r.delete('gid_2016_04_06_houmlb_nyamlb_1-621043-AB4')
-    #r.delete('gid_2016_04_06_houmlb_nyamlb_1-621043-AB5')
         
     # scrape the MLB game list page
     game_day_url = DATA_ROOT + 'year_{0}/month_{1}/day_{2}/'.format(today.year, '{:02d}'.format(today.month), '{:02d}'.format(today.day))
@@ -142,8 +136,7 @@ def fetch_events():
                     handle_match(result)
                 else:
                     handle_miss(result)
-               
-    print 'Done with scrape.' 
+    #print 'Done with scrape.' 
 
 
 def handle_miss(result):
