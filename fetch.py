@@ -24,7 +24,7 @@ CONFIG = {
     'playerID': '400085',
     'team': 'MIA',
     'player_name': 'Ichiro',
-    'start_count': 2935,
+    'start_count': 2936,
     'target_count': 3000,
     'events_tracked': ['Single', 'Double', 'Triple', 'Home Run'],
 }
