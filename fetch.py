@@ -193,7 +193,7 @@ def handle_match(result):
     elif new_total == target:
         message += "OMG THAT'S {:,}! GO GO ICHIRO!".format(target)
     else:
-        message += "That's {:,}.".format(current)
+        message += "That's {:,}.".format(new_total)
 
     tweet_message(message)
 
