@@ -64,6 +64,27 @@ def clean_the_lines():
     print 'The lines are cleaned.'
 
 
+def force_reset_redis():
+    '''
+    Force redis values for start, current, and target counts. 
+    '''
+    r = create_redis_connection()
+
+    start = CONFIG['start_count']
+    r.set(REDIS_KEYS['start'], start)
+    print 'Start count initialized.'
+
+    current = CONFIG['start_count']
+    r.set(REDIS_KEYS['current'], current)
+
+    if 'target_count' in CONFIG:
+        target = CONFIG['target_count']
+        r.set(REDIS_KEYS['target'], target)
+        print 'Target count initialized.'
+
+    return int(start), int(current), int(target)
+
+
 def init_counts(r):
     '''
     Make sure redis has values for start, current, and target counts,
@@ -201,6 +222,7 @@ def process_args(arglist=None):
     parser.add_argument('--check', action='store_const', const=True)
     parser.add_argument('--flush', action='store_const', const=True)
     parser.add_argument('--clean', action='store_const', const=True)
+    parser.add_argument('--seed', action='store_const', const=True)
     args = parser.parse_args()
     
     return args
@@ -217,6 +239,8 @@ def main(args=None):
         check_redis()
     elif args.clean:
         clean_the_lines()
+    elif args.seed:
+        force_reset_redis()
     else:
         fetch_events()
 
