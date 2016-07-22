@@ -24,7 +24,7 @@ CONFIG = {
     'playerID': '400085',
     'team': 'MIA',
     'player_name': 'Ichiro',
-    'start_count': 2956,
+    'start_count': 2996,
     'target_count': 3000,
     'events_tracked': ['Single', 'Double', 'Triple', 'Home Run'],
 }
@@ -167,10 +167,12 @@ def handle_match(result):
     player_name = CONFIG['player_name']
     message = "{0} {1}! ".format(player_name, result.lower())
     
-    if target > 0:
-        message += "Thats's {:,}, only {:,} to go till {:,}.".format(new_total, (target-new_total), target)
+    if target > 0 and new_total < target:
+        message += "That's {:,}, only {:,} to go till {:,}.".format(new_total, (target-new_total), target)
+    else new_total == target:
+        message += "OMG THAT'S {:,}! GO GO ICHIRO!".format(target)
     else:
-        message += "That's {:,} so far.".format(current)
+        message += "That's {:,}.".format(current)
 
     tweet_message(message)
 
