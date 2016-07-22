@@ -169,7 +169,7 @@ def handle_match(result):
     
     if target > 0 and new_total < target:
         message += "That's {:,}, only {:,} to go till {:,}.".format(new_total, (target-new_total), target)
-    else if new_total == target:
+    elif new_total == target:
         message += "OMG THAT'S {:,}! GO GO ICHIRO!".format(target)
     else:
         message += "That's {:,}.".format(current)
